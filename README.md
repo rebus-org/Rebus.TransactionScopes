@@ -1,4 +1,4 @@
-# Rebus.TODO
+# Rebus.TransactionScopes
 
 Provides a `System.Transactions.TransactionScope` helper for [Rebus](https://github.com/rebus-org/Rebus).
 
