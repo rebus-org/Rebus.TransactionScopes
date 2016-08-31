@@ -8,3 +8,13 @@ Provides a `System.Transactions.TransactionScope` helper for [Rebus](https://git
 
 Use it like this:
 
+	using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+	{
+		scope.EnlistRebus();
+
+		// this one is automatically enlisted in the ambient .NET transaction
+		await _bus.Send("ostemad");
+
+		scope.Complete();
+	}
+
