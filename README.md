@@ -1,6 +1,6 @@
 # Rebus.TransactionScopes
 
-[![install from nuget](https://img.shields.io/nuget/v/Rebus.TransactionScopes.svg?style=flat-square)](https://www.nuget.org/packages/Rebus.TransactionScopes)
+[![install from nuget](https://img.shields.io/nuget/v/Rebus.TransactionScope.svg?style=flat-square)](https://www.nuget.org/packages/Rebus.TransactionScope)
 
 Provides a `System.Transactions.TransactionScope` helper for [Rebus](https://github.com/rebus-org/Rebus).
 
