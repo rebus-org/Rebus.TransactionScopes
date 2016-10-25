@@ -47,7 +47,7 @@ namespace Rebus.TransactionScopes.Tests
 
             done.WaitOrDie(TimeSpan.FromSeconds(2));
 
-            Assert.That(detectedAmbientTransaction, Is.EqualTo(useTransactionScope), 
+            Assert.That(detectedAmbientTransaction, Is.EqualTo(useTransactionScope),
                 "Detected: {0}, expected: {1}", detectedAmbientTransaction, useTransactionScope);
         }
     }
