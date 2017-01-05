@@ -32,9 +32,10 @@ namespace Rebus.TransactionScopes
                     " properly to threads when executing continuations.");
             }
 
-            var transactionContext = new DefaultTransactionContext();
+            var scope = new DefaultTransactionContextScope();
+            var transactionContext = AmbientTransactionContext.Current;
 
-            var ambientTransactionBridge = new AmbientTransactionBridge(transactionContext);
+            var ambientTransactionBridge = new AmbientTransactionBridge(transactionContext, scope);
 
             Transaction.Current.EnlistVolatile(ambientTransactionBridge, EnlistmentOptions.None);
 
@@ -43,18 +44,18 @@ namespace Rebus.TransactionScopes
                 ambientTransactionBridge.Dispose();
             };
 
-            AmbientTransactionContext.Current = transactionContext;
-
             return transactionScope;
         }
 
         class AmbientTransactionBridge : IEnlistmentNotification, IDisposable
         {
-            readonly DefaultTransactionContext _transactionContext;
+            readonly ITransactionContext _transactionContext;
+            readonly DefaultTransactionContextScope _scope;
 
-            public AmbientTransactionBridge(DefaultTransactionContext transactionContext)
+            public AmbientTransactionBridge(ITransactionContext transactionContext, DefaultTransactionContextScope scope)
             {
                 _transactionContext = transactionContext;
+                _scope = scope;
             }
 
             public void Prepare(PreparingEnlistment preparingEnlistment)
@@ -64,7 +65,7 @@ namespace Rebus.TransactionScopes
 
             public void Commit(Enlistment enlistment)
             {
-                _transactionContext.Complete()
+                _scope.Complete()
                     .ContinueWith(_ =>
                     {
                         using (_transactionContext)
@@ -88,7 +89,7 @@ namespace Rebus.TransactionScopes
 
             static void CleanUp()
             {
-                AmbientTransactionContext.Current = null;
+                AmbientTransactionContext.SetCurrent(null);
             }
 
             public void Dispose()
