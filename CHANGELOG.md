@@ -15,3 +15,8 @@
 ## 3.0.0
 
 * Update to Rebus 3
+
+## 4.0.0-b01
+
+* Update to Rebus 4
+* Port to new project structure

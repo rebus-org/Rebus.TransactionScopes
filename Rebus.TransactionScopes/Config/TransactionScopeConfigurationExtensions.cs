@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Transactions;
-using Rebus.Config;
 using Rebus.Pipeline;
 using Rebus.Pipeline.Receive;
+using Rebus.TransactionScopes;
 
-namespace Rebus.TransactionScopes
+namespace Rebus.Config
 {
     /// <summary>
-    /// Configuration extensions for enabling automatic execution if handlers inside <see cref="TransactionScope"/>
+    /// Configuration extensions for enabling automatic execution if handlers inside <see cref="System.Transactions.TransactionScope"/>
     /// </summary>
     public static class TransactionScopeConfigurationExtensions
     {
         /// <summary>
-        /// Configures Rebus to execute handlers inside a <see cref="TransactionScope"/>. Uses Rebus' default transaction
-        /// options which is <see cref="IsolationLevel.ReadCommitted"/> isolation level and 1 minut timeout.
-        /// Use the <see cref="HandleMessagesInsideTransactionScope(OptionsConfigurer, TransactionOptions)"/> if you
+        /// Configures Rebus to execute handlers inside a <see cref="System.Transactions.TransactionScope"/>. Uses Rebus' default transaction
+        /// options which is <see cref="System.Data.IsolationLevel.ReadCommitted"/> isolation level and 1 minut timeout.
+        /// Use the <see cref="HandleMessagesInsideTransactionScope(OptionsConfigurer, System.Transactions.TransactionOptions)"/> if you
         /// want to customize the transaction settings.
         /// </summary>
         public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer)

@@ -32,9 +32,8 @@ namespace Rebus.TransactionScopes
                     " properly to threads when executing continuations.");
             }
 
-            var scope = new DefaultTransactionContextScope();
-            var transactionContext = AmbientTransactionContext.Current;
-
+            var scope = new RebusTransactionScope();
+            var transactionContext = scope.TransactionContext;
             var ambientTransactionBridge = new AmbientTransactionBridge(transactionContext, scope);
 
             Transaction.Current.EnlistVolatile(ambientTransactionBridge, EnlistmentOptions.None);
@@ -50,9 +49,9 @@ namespace Rebus.TransactionScopes
         class AmbientTransactionBridge : IEnlistmentNotification, IDisposable
         {
             readonly ITransactionContext _transactionContext;
-            readonly DefaultTransactionContextScope _scope;
+            readonly RebusTransactionScope _scope;
 
-            public AmbientTransactionBridge(ITransactionContext transactionContext, DefaultTransactionContextScope scope)
+            public AmbientTransactionBridge(ITransactionContext transactionContext, RebusTransactionScope scope)
             {
                 _transactionContext = transactionContext;
                 _scope = scope;
@@ -65,14 +64,12 @@ namespace Rebus.TransactionScopes
 
             public void Commit(Enlistment enlistment)
             {
-                _scope.Complete()
-                    .ContinueWith(_ =>
-                    {
-                        using (_transactionContext)
-                        {
-                            enlistment.Done();
-                        }
-                    });
+                _scope.Complete();
+
+                using (_transactionContext)
+                {
+                    enlistment.Done();
+                }
             }
 
             public void Rollback(Enlistment enlistment)
