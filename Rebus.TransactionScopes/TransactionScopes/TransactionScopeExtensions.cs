@@ -32,9 +32,7 @@ namespace Rebus.TransactionScopes
                     " properly to threads when executing continuations.");
             }
 
-            var scope = new RebusTransactionScope();
-            var transactionContext = scope.TransactionContext;
-            var ambientTransactionBridge = new AmbientTransactionBridge(transactionContext, scope);
+            var ambientTransactionBridge = new AmbientTransactionBridge(new RebusTransactionScope());
 
             Transaction.Current.EnlistVolatile(ambientTransactionBridge, EnlistmentOptions.None);
 
@@ -48,12 +46,10 @@ namespace Rebus.TransactionScopes
 
         class AmbientTransactionBridge : IEnlistmentNotification, IDisposable
         {
-            readonly ITransactionContext _transactionContext;
             readonly RebusTransactionScope _scope;
 
-            public AmbientTransactionBridge(ITransactionContext transactionContext, RebusTransactionScope scope)
+            public AmbientTransactionBridge(RebusTransactionScope scope)
             {
-                _transactionContext = transactionContext;
                 _scope = scope;
             }
 
@@ -64,18 +60,20 @@ namespace Rebus.TransactionScopes
 
             public void Commit(Enlistment enlistment)
             {
-                _scope.Complete();
-
-                using (_transactionContext)
+                try
                 {
+                    _scope.Complete();
                     enlistment.Done();
+                }
+                catch
+                {
+                    _scope.Dispose();
+                    throw;
                 }
             }
 
             public void Rollback(Enlistment enlistment)
             {
-                _transactionContext.Dispose();
-
                 enlistment.Done();
             }
 
@@ -84,14 +82,9 @@ namespace Rebus.TransactionScopes
                 enlistment.Done();
             }
 
-            static void CleanUp()
-            {
-                AmbientTransactionContext.SetCurrent(null);
-            }
-
             public void Dispose()
             {
-                CleanUp();
+                _scope.Dispose();
             }
         }
     }
