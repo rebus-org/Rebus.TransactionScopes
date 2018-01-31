@@ -20,3 +20,9 @@
 
 * Update to Rebus 4
 * Port to new project structure
+
+## 4.0.1
+
+* Fix exception-during-disposal bug - thanks [nebelx]
+
+[nebelx]: https://github.com/nebelx
