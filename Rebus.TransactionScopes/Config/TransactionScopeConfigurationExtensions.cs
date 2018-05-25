@@ -14,7 +14,7 @@ namespace Rebus.Config
         /// <summary>
         /// Configures Rebus to execute handlers inside a <see cref="System.Transactions.TransactionScope"/>. Uses Rebus' default transaction
         /// options which is <see cref="System.Data.IsolationLevel.ReadCommitted"/> isolation level and 1 minut timeout.
-        /// Use the <see cref="HandleMessagesInsideTransactionScope(OptionsConfigurer, System.Transactions.TransactionOptions)"/> if you
+        /// Use the <see cref="HandleMessagesInsideTransactionScope(OptionsConfigurer, System.Transactions.TransactionOptions, Type)"/> if you
         /// want to customize the transaction settings.
         /// </summary>
         public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer)
