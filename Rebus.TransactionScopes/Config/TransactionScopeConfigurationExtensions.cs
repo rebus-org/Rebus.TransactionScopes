@@ -30,11 +30,15 @@ namespace Rebus.Config
 
         /// <summary>
         /// Configures Rebus to execute handlers inside a <see cref="TransactionScope"/>, using the transaction options
-        /// given by <paramref name="transactionOptions"/> for the transaction scope
+        /// given by <paramref name="transactionOptions"/> for the transaction scope. If <paramref name="injectBeforeStepType"/> is
+        /// defined, it will be used as the anchor step type for injection in the incoming step pipleine. The default is <see cref="DispatchIncomingMessageStep" />
+        /// if it is not defined.
         /// </summary>
-        public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer, TransactionOptions transactionOptions)
+        public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer, TransactionOptions transactionOptions, Type injectBeforeStepType = null)
         {
             if (configurer == null) throw new ArgumentNullException(nameof(configurer));
+
+            injectBeforeStepType = injectBeforeStepType ?? typeof(DispatchIncomingMessageStep);
 
             configurer.Decorate<IPipeline>(c =>
             {
@@ -42,7 +46,7 @@ namespace Rebus.Config
                 var stepToInject = new TransactionScopeIncomingStep(transactionOptions);
 
                 return new PipelineStepInjector(pipeline)
-                    .OnReceive(stepToInject, PipelineRelativePosition.Before, typeof(DispatchIncomingMessageStep));
+                    .OnReceive(stepToInject, PipelineRelativePosition.Before, injectBeforeStepType);
             });
         }
     }
