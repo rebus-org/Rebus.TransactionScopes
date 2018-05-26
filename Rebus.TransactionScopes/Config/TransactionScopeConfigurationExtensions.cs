@@ -31,8 +31,18 @@ namespace Rebus.Config
         /// <summary>
         /// Configures Rebus to execute handlers inside a <see cref="TransactionScope"/>, using the transaction options
         /// given by <paramref name="transactionOptions"/> for the transaction scope. If <paramref name="injectBeforeStepType"/> is
-        /// defined, it will be used as the anchor step type for injection in the incoming step pipleine. The default is <see cref="DispatchIncomingMessageStep" />
-        /// if it is not defined.
+        /// defined, it will be used as the anchor step type for injection in the incoming step pipleine.
+        /// The default is <see cref="DispatchIncomingMessageStep" /> if it is not defined.
+        /// If you're in doubt about which steps are in the incoming message pipeline, you can have the pipeline
+        /// contents logged at startup by calling <see cref="OptionsConfigurer.LogPipeline"/> like this:
+        /// <para>
+        /// <code>
+        /// Configure.With(..)<para/>
+        ///     .(...)<para/>
+        ///     .Options(o => o.LogPipeline(verbose: true)<para/>
+        ///     .Start();<para/>
+        /// </code>
+        /// </para>
         /// </summary>
         public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer, TransactionOptions transactionOptions, Type injectBeforeStepType = null)
         {

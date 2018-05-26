@@ -25,4 +25,9 @@
 
 * Fix exception-during-disposal bug - thanks [nebelx]
 
+## 4.1.0
+
+* Add ability to configure position of transaction scope step in the incoming pipeline - thanks [larsw]
+
+[larsw]: https://github.com/larsw
 [nebelx]: https://github.com/nebelx
