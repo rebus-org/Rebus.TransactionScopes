@@ -29,5 +29,9 @@
 
 * Add ability to configure position of transaction scope step in the incoming pipeline - thanks [larsw]
 
+## 4.1.1
+
+* Add .NET Standard 2.0 as a target in addition to .NET 4.5.1
+
 [larsw]: https://github.com/larsw
 [nebelx]: https://github.com/nebelx
