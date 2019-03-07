@@ -2,7 +2,9 @@
 using System.Transactions;
 using Rebus.Pipeline;
 using Rebus.Pipeline.Receive;
+using Rebus.Retry.Simple;
 using Rebus.TransactionScopes;
+using Rebus.Transport;
 
 namespace Rebus.Config
 {
@@ -30,11 +32,11 @@ namespace Rebus.Config
 
         /// <summary>
         /// Configures Rebus to execute handlers inside a <see cref="TransactionScope"/>, using the transaction options
-        /// given by <paramref name="transactionOptions"/> for the transaction scope. If <paramref name="injectBeforeStepType"/> is
-        /// defined, it will be used as the anchor step type for injection in the incoming step pipleine.
-        /// The default is <see cref="DispatchIncomingMessageStep" /> if it is not defined.
-        /// If you're in doubt about which steps are in the incoming message pipeline, you can have the pipeline
-        /// contents logged at startup by calling <see cref="OptionsConfigurer.LogPipeline"/> like this:
+        /// given by <paramref name="transactionOptions"/> for the transaction scope.
+        /// <para>
+        /// The <see cref="TransactionScope"/> is managed with an <see cref="ITransport"/> decorator,
+        /// which means that it gets created before receiving the incoming message.
+        /// </para>
         /// <para>
         /// <code>
         /// Configure.With(..)<para/>
@@ -44,19 +46,23 @@ namespace Rebus.Config
         /// </code>
         /// </para>
         /// </summary>
-        public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer, TransactionOptions transactionOptions, Type injectBeforeStepType = null)
+        public static void HandleMessagesInsideTransactionScope(this OptionsConfigurer configurer, TransactionOptions transactionOptions)
         {
             if (configurer == null) throw new ArgumentNullException(nameof(configurer));
 
-            injectBeforeStepType = injectBeforeStepType ?? typeof(DispatchIncomingMessageStep);
+            configurer.Decorate<ITransport>(c =>
+            {
+                var transport = c.Get<ITransport>();
+
+                return new TransactionScopeTransportDecorator(transport, transactionOptions);
+            });
 
             configurer.Decorate<IPipeline>(c =>
             {
                 var pipeline = c.Get<IPipeline>();
-                var stepToInject = new TransactionScopeIncomingStep(transactionOptions);
 
                 return new PipelineStepInjector(pipeline)
-                    .OnReceive(stepToInject, PipelineRelativePosition.Before, injectBeforeStepType);
+                    .OnReceive(new TransactionScopeIncomingStep(), PipelineRelativePosition.After, typeof(DeserializeIncomingMessageStep));
             });
         }
     }
