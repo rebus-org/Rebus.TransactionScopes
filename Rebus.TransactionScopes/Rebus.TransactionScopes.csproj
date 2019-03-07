@@ -10,8 +10,8 @@
     <Authors>mookid8000</Authors>
     <PackageLicenseUrl>https://raw.githubusercontent.com/rebus-org/Rebus/master/LICENSE.md</PackageLicenseUrl>
     <PackageProjectUrl>http://mookid.dk/oncode/rebus</PackageProjectUrl>
-    <Copyright>Copyright 2012-2016</Copyright>
-    <PackageTags>rebus autofac ioc dependency-injection</PackageTags>
+    <Copyright>Copyright 2012-2019</Copyright>
+    <PackageTags>rebus transactions transaction-scope</PackageTags>
     <PackageIconUrl>https://github.com/mookid8000/Rebus/raw/master/artwork/little_rebusbus2_copy-200x200.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/rebus-org/Rebus</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -36,18 +36,14 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Release\Rebus.TransactionScopes.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <DefineConstants>NET451</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <DefineConstants>NETSTANDARD1_6</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Properties\AssemblyInfo.cs" />
     <None Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Rebus" Version="4.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
