@@ -27,16 +27,10 @@ namespace Rebus.TransactionScopes
                 return;
             }
 
-            var previous = Transaction.Current;
-            try
+            using (var scope = new TransactionScope(transaction, TransactionScopeAsyncFlowOption.Enabled))
             {
-                Transaction.Current = transaction;
-
                 await next();
-            }
-            finally
-            {
-                Transaction.Current = previous;
+                scope.Complete();
             }
         }
     }
