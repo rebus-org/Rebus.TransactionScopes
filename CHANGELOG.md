@@ -33,9 +33,11 @@
 
 * Add .NET Standard 2.0 as a target in addition to .NET 4.5.1
 
-## 5.0.0-b1
+## 5.0.0-b2
 
 * Change it so that the receive operation is enlisted in the `TransactionScope` too, when "handle messages inside TransactionScope" is enabled
+* Fix bug that would result in losing the ambient transaction scope - thanks [thomasdc]
 
 [larsw]: https://github.com/larsw
 [nebelx]: https://github.com/nebelx
+[thomasdc]: https://github.com/thomasdc
