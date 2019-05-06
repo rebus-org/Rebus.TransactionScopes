@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Rebus.Activation;
@@ -24,6 +25,7 @@ namespace Rebus.TransactionScopes.Tests
 
             activator.Handle<string>(async str =>
             {
+                await Task.Delay(10);
                 detectedAmbientTransaction = Transaction.Current != null;
 
                 done.Set();
