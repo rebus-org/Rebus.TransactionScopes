@@ -33,8 +33,8 @@ namespace Rebus.TransactionScopes
             var scope = new TransactionScope(TransactionScopeOption.Required, _transactionOptions,
                 TransactionScopeAsyncFlowOption.Enabled);
 
-            context.OnCompleted(async () => scope.Complete());
-            context.OnDisposed(() => scope.Dispose());
+            context.OnCompleted(async ctx => scope.Complete());
+            context.OnDisposed(ctx => scope.Dispose());
 
             // stash current tx so we can re-attach it later
             context.Items[TransactionScopeIncomingStep.CurrentTransactionContextKey] = Transaction.Current;
