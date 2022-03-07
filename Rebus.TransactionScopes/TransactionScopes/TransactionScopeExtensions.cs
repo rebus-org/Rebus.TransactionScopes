@@ -22,10 +22,12 @@ public static class TransactionScopeExtensions
             throw new InvalidOperationException("Cannot start a new ambient Rebus transaction because there is already one associated with the current execution context!");
         }
 
-        if (Transaction.Current == null)
+        var transaction = Transaction.Current;
+
+        if (transaction == null)
         {
             throw new InvalidOperationException(
-                "Cannot enlist a new ambient Rebus transaction in the current transaction scope, but there's no current transaction" +
+                "Cannot enlist a new ambient Rebus transaction in the current transaction scope becausethere's no current transaction" +
                 " on the thread!! Did you accidentally begin the transaction scope WITHOUT the TransactionScopeAsyncFlowOption.Enabled" +
                 " option? You must ALWAYS remember the TransactionScopeAsyncFlowOption.Enabled switch when you start an ambient .NET" +
                 " transaction and you intend to work with async/await, because otherwise the ambient .NET transaction will not flow" +
@@ -34,12 +36,9 @@ public static class TransactionScopeExtensions
 
         var ambientTransactionBridge = new AmbientTransactionBridge(new RebusTransactionScope());
 
-        Transaction.Current.EnlistVolatile(ambientTransactionBridge, EnlistmentOptions.None);
+        transaction.EnlistVolatile(ambientTransactionBridge, EnlistmentOptions.None);
 
-        Transaction.Current.TransactionCompleted += (o, ea) =>
-        {
-            ambientTransactionBridge.Dispose();
-        };
+        transaction.TransactionCompleted += (_, _) => ambientTransactionBridge.Dispose();
 
         return transactionScope;
     }
@@ -48,10 +47,7 @@ public static class TransactionScopeExtensions
     {
         readonly RebusTransactionScope _scope;
 
-        public AmbientTransactionBridge(RebusTransactionScope scope)
-        {
-            _scope = scope;
-        }
+        public AmbientTransactionBridge(RebusTransactionScope scope) => _scope = scope ?? throw new ArgumentNullException(nameof(scope));
 
         public void Prepare(PreparingEnlistment preparingEnlistment)
         {
@@ -60,16 +56,8 @@ public static class TransactionScopeExtensions
 
         public void Commit(Enlistment enlistment)
         {
-            try
-            {
-                _scope.Complete();
-                enlistment.Done();
-            }
-            catch
-            {
-                _scope.Dispose();
-                throw;
-            }
+            _scope.Complete();
+            enlistment.Done();
         }
 
         public void Rollback(Enlistment enlistment)

@@ -19,11 +19,12 @@ public class TestTransactionScopeSupport : FixtureBase
     [TestCase(false)]
     public void CanHandleMessagesInsideTransactionScope(bool useTransactionScope)
     {
-        var done = new ManualResetEvent(false);
-        var detectedAmbientTransaction = false;
+        var done = Using(new ManualResetEvent(false));
         var activator = Using(new BuiltinHandlerActivator());
+        
+        var detectedAmbientTransaction = false;
 
-        activator.Handle<string>(async str =>
+        activator.Handle<string>(async _ =>
         {
             await Task.Delay(10);
             detectedAmbientTransaction = Transaction.Current != null;
