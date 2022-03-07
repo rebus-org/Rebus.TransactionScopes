@@ -10,46 +10,45 @@ using Rebus.Tests.Contracts.Extensions;
 using Rebus.Transport.InMem;
 #pragma warning disable 1998
 
-namespace Rebus.TransactionScopes.Tests
+namespace Rebus.TransactionScopes.Tests;
+
+[TestFixture]
+public class TestTransactionScopeSupport : FixtureBase
 {
-    [TestFixture]
-    public class TestTransactionScopeSupport : FixtureBase
+    [TestCase(true)]
+    [TestCase(false)]
+    public void CanHandleMessagesInsideTransactionScope(bool useTransactionScope)
     {
-        [TestCase(true)]
-        [TestCase(false)]
-        public void CanHandleMessagesInsideTransactionScope(bool useTransactionScope)
+        var done = new ManualResetEvent(false);
+        var detectedAmbientTransaction = false;
+        var activator = Using(new BuiltinHandlerActivator());
+
+        activator.Handle<string>(async str =>
         {
-            var done = new ManualResetEvent(false);
-            var detectedAmbientTransaction = false;
-            var activator = Using(new BuiltinHandlerActivator());
+            await Task.Delay(10);
+            detectedAmbientTransaction = Transaction.Current != null;
 
-            activator.Handle<string>(async str =>
+            done.Set();
+        });
+
+        Configure.With(activator)
+            .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "txtest"))
+            .Options(o =>
             {
-                await Task.Delay(10);
-                detectedAmbientTransaction = Transaction.Current != null;
-
-                done.Set();
-            });
-
-            Configure.With(activator)
-                .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "txtest"))
-                .Options(o =>
+                if (useTransactionScope)
                 {
-                    if (useTransactionScope)
-                    {
-                        o.HandleMessagesInsideTransactionScope();
-                    }
+                    o.HandleMessagesInsideTransactionScope();
+                }
 
-                    o.LogPipeline();
-                })
-                .Start();
+                o.LogPipeline();
+            })
+            .Start();
 
-            activator.Bus.SendLocal("hej").Wait();
+        activator.Bus.SendLocal("hej").Wait();
 
-            done.WaitOrDie(TimeSpan.FromSeconds(2));
+        done.WaitOrDie(TimeSpan.FromSeconds(2));
 
-            Assert.That(detectedAmbientTransaction, Is.EqualTo(useTransactionScope),
-                "Detected: {0}, expected: {1}", detectedAmbientTransaction, useTransactionScope);
-        }
+        Assert.That(detectedAmbientTransaction, Is.EqualTo(useTransactionScope),
+            "Detected: {0}, expected: {1}", detectedAmbientTransaction, useTransactionScope);
     }
 }
