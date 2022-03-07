@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Rebus.Activation;
-using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Tests.Contracts;
 using Rebus.Transport.InMem;
+// ReSharper disable ArgumentsStyleLiteral
+// ReSharper disable AccessToDisposedClosure
 
 #pragma warning disable 1998
 
@@ -16,7 +20,7 @@ namespace Rebus.TransactionScopes.Tests;
 public class TestClientTransactionScope : FixtureBase
 {
     BuiltinHandlerActivator _activator;
-    IBus _bus;
+    IBusStarter _starter;
 
     protected override void SetUp()
     {
@@ -24,47 +28,64 @@ public class TestClientTransactionScope : FixtureBase
 
         Using(_activator);
 
-        Configure.With(_activator)
+        _starter = Configure.With(_activator)
             .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "tx-text"))
-            .Start();
-
-        _bus = _activator.Bus;
+            .Create();
     }
 
-    [TestCase(true, false, true)]
-    [TestCase(false, false, false)]
-    [TestCase(false, true, false)]
-    public async Task SendsMessageOnlyWhenTransactionScopeIsCompleted(bool completeTheScope, bool throwException, bool expectToReceiveMessage)
+    static IEnumerable<Scenario> GetScenarios() => new Scenario[]
     {
-        var gotMessage = false;
-        _activator.Handle<string>(async str => gotMessage = true);
+        new(ThrowException: false, EnlistInScope: true, CompleteTheScope: false, ExpectToReceiveMessage: false),
+        new(ThrowException: true, EnlistInScope: true, CompleteTheScope: false, ExpectToReceiveMessage: false),
+        new(ThrowException: false, EnlistInScope: true, CompleteTheScope: false, ExpectToReceiveMessage: false),
+        new(ThrowException: false, EnlistInScope: true, CompleteTheScope: true, ExpectToReceiveMessage: true),
+        new(ThrowException: true, EnlistInScope: false, CompleteTheScope: true, ExpectToReceiveMessage: true)
+    };
+
+    [TestCaseSource(nameof(GetScenarios))]
+    public async Task SendsMessageOnlyWhenTransactionScopeIsCompleted(Scenario scenario)
+    {
+        var (throwException, enlistInScope, completeTheScope, expectToReceiveMessage) = scenario;
+
+        using var gotMessage = new ManualResetEvent(initialState: false);
+
+        _activator.Handle<string>(async _ => gotMessage.Set());
+
+        var bus = _starter.Start();
 
         try
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            if (enlistInScope)
             {
                 scope.EnlistRebus();
+            }
 
-                await _bus.SendLocal("hallå i stuen!1");
+            await bus.SendLocal("hallå i stuen!1");
 
-                if (throwException)
-                {
-                    throw new ApplicationException("omg what is this?????");
-                }
+            if (throwException)
+            {
+                throw new ApplicationException("omg what is this?????");
+            }
 
-                if (completeTheScope)
-                {
-                    scope.Complete();
-                }
+            if (completeTheScope)
+            {
+                scope.Complete();
             }
         }
-        catch(ApplicationException exception) when (exception.Message == "omg what is this?????")
+        catch (ApplicationException exception) when (exception.Message == "omg what is this?????")
         {
             Console.WriteLine("An exception occurred... quite expected though");
         }
 
-        await Task.Delay(1000);
+        Assert.That(gotMessage.WaitOne(TimeSpan.FromSeconds(1)), Is.EqualTo(expectToReceiveMessage),
+            $@"Given the scenario 
 
-        Assert.That(gotMessage, Is.EqualTo(expectToReceiveMessage), "Must receive message IFF the tx scope is completed");
+    {scenario}
+
+we expected that the message {(expectToReceiveMessage ? "WOULD be RECEIVED" : "would NOT BE RECEIVED")}");
     }
+
+    public record Scenario(bool ThrowException, bool EnlistInScope, bool CompleteTheScope, bool ExpectToReceiveMessage);
 }

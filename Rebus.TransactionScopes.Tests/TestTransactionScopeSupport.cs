@@ -21,7 +21,7 @@ public class TestTransactionScopeSupport : FixtureBase
     {
         var done = Using(new ManualResetEvent(false));
         var activator = Using(new BuiltinHandlerActivator());
-        
+
         var detectedAmbientTransaction = false;
 
         activator.Handle<string>(async _ =>
@@ -50,6 +50,6 @@ public class TestTransactionScopeSupport : FixtureBase
         done.WaitOrDie(TimeSpan.FromSeconds(2));
 
         Assert.That(detectedAmbientTransaction, Is.EqualTo(useTransactionScope),
-            "Detected: {0}, expected: {1}", detectedAmbientTransaction, useTransactionScope);
+            $"Detected: {detectedAmbientTransaction}, expected: {useTransactionScope}");
     }
 }
