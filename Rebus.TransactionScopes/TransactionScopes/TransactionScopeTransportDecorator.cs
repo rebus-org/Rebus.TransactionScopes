@@ -33,7 +33,7 @@ class TransactionScopeTransportDecorator : ITransport
         var scope = new TransactionScope(TransactionScopeOption.Required, _transactionOptions,
             TransactionScopeAsyncFlowOption.Enabled);
 
-        context.OnCompleted(async _ => scope.Complete());
+        context.OnAck(async _ => scope.Complete());
         context.OnDisposed(_ => scope.Dispose());
 
         // stash current tx so we can re-attach it later

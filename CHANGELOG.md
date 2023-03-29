@@ -32,6 +32,9 @@
 ## 6.0.0
 * Update to Rebus 6 - thanks [DavidZidar]
 
+## 7.0.0-alpha01
+* Update to Rebus 8
+
 [DavidZidar]: https://github.com/DavidZidar
 [larsw]: https://github.com/larsw
 [nebelx]: https://github.com/nebelx
