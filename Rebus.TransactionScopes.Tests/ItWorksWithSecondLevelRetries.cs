@@ -22,8 +22,19 @@ public class ItWorksWithSecondLevelRetries : FixtureBase
         using var activator = new BuiltinHandlerActivator();
         using var secondLevelDispatchSucceeded = new ManualResetEvent(initialState: false);
 
-        activator.Handle<string>(async _ => throw new ApplicationException("oh no!"));
-        activator.Handle<IFailed<string>>(async _ => secondLevelDispatchSucceeded.Set());
+        var handlerInvocationCounter = 0L;
+        var secondLevelHandlerInvocationCounter = 0L;
+
+        activator.Handle<string>(async _ =>
+        {
+            Interlocked.Increment(ref handlerInvocationCounter);
+            throw new ApplicationException("oh no!");
+        });
+        activator.Handle<IFailed<string>>(async _ =>
+        {
+            Interlocked.Increment(ref secondLevelHandlerInvocationCounter);
+            secondLevelDispatchSucceeded.Set();
+        });
 
         Configure.With(activator)
             .Transport(t => t.UseInMemoryTransport(new(), "whatever"))
@@ -36,5 +47,11 @@ public class ItWorksWithSecondLevelRetries : FixtureBase
         await bus.SendLocal("HEJ 🙂");
 
         secondLevelDispatchSucceeded.WaitOrDie(timeout: TimeSpan.FromSeconds(5));
+
+        // be absolutely sure that nothing else happens
+        await Task.Delay(TimeSpan.FromSeconds(1));
+
+        Assert.That(handlerInvocationCounter, Is.EqualTo(5));
+        Assert.That(secondLevelHandlerInvocationCounter, Is.EqualTo(1));
     }
 }
