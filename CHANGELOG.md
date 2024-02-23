@@ -35,7 +35,11 @@
 ## 7.0.0
 * Update to Rebus 8
 
+## 7.0.1
+* Fix bug that would prevent second-level retries to work, because the transaction scope's transaction had already been aborted - thanks [leendertdommicent]
+
 [DavidZidar]: https://github.com/DavidZidar
 [larsw]: https://github.com/larsw
+[leendertdommicent]: https://github.com/leendertdommicent
 [nebelx]: https://github.com/nebelx
 [thomasdc]: https://github.com/thomasdc
