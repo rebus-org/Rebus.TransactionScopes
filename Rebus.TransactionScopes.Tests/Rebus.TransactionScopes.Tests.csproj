@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net7.0</TargetFrameworks>
+		<TargetFrameworks>net8.0</TargetFrameworks>
 		<Authors>mookid8000</Authors>
 		<PackageLicenseUrl>https://raw.githubusercontent.com/rebus-org/Rebus/master/LICENSE.md</PackageLicenseUrl>
 		<PackageProjectUrl>https://rebus.fm/what-is-rebus/</PackageProjectUrl>
@@ -13,9 +13,9 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Rebus.TransactionScopes\Rebus.TransactionScopes.csproj" />
-		<PackageReference Include="microsoft.net.test.sdk" Version="17.8.0" />
+		<PackageReference Include="microsoft.net.test.sdk" Version="17.9.0" />
 		<PackageReference Include="nunit" Version="3.14.0" />
 		<PackageReference Include="nunit3testadapter" Version="4.5.0" />
-		<PackageReference Include="Rebus.Tests.Contracts" Version="8.0.1" />
+		<PackageReference Include="Rebus.Tests.Contracts" Version="8.2.6" />
 	</ItemGroup>
 </Project>

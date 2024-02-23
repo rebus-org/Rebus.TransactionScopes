@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Transactions;
 using Rebus.Pipeline;
+using Rebus.Retry.Simple;
 using Rebus.Transport;
 
 namespace Rebus.TransactionScopes;
@@ -14,6 +15,12 @@ class TransactionScopeIncomingStep : IIncomingStep
     public async Task Process(IncomingStepContext context, Func<Task> next)
     {
         var items = context.Load<ITransactionContext>().Items;
+
+        if (context.Load<bool>(DefaultRetryStep.DispatchAsFailedMessageKey))
+        {
+            await next();
+            return;
+        }
 
         if (!items.TryGetValue(CurrentTransactionContextKey, out var temp))
         {
